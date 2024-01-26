@@ -45,9 +45,6 @@ async function openseaSocket() {
 
           if (recentEvents.length >= 5) {
             console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
-            // recentEvents.forEach((recentEvent) => {
-            //   console.log(recentEvent);
-            // });
           }
 
           listedEventBuffer = [];
@@ -73,10 +70,7 @@ async function openseaSocket() {
           });
 
           if (recentEvents.length >= 5) {
-            console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events):`);
-            // recentEvents.forEach((recentEvent) => {
-            //   console.log(recentEvent);
-            // });
+            console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
           }
 
           soldEventBuffer = [];
