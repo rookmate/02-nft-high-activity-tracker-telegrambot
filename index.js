@@ -44,7 +44,7 @@ async function openseaSocket() {
           });
 
           if (recentEvents.length >= 5) {
-            console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events):`);
+            console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
             // recentEvents.forEach((recentEvent) => {
             //   console.log(recentEvent);
             // });
