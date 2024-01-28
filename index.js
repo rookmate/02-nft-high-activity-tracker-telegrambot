@@ -50,14 +50,12 @@ async function openseaSocket(telegram, chatID) {
             return timeDifference <= 500 && sameCollectionSlug;
           });
 
-          if (recentEvents.length >= 5) {
+          if (recentEvents.length >= 2) {
             console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
             const collectionSlug = recentEvents[0].payload.collection.slug;
-            const itemImageUrl = recentEvents[0].payload.payload.item.metadata.image_url;
-            const collectionPermalink = recentEvents[0].payload.payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least 5 items listed 📉\n` +
-              `Image: [View Image](${itemImageUrl})`
-            ;
+            const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+            const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+            const message = `📉 <a href="${collectionPermalink}">${collectionSlug}</a> had at least 5 items listed 📉`;
             telegram.sendMessage(chatID, message);
           }
 
@@ -83,14 +81,12 @@ async function openseaSocket(telegram, chatID) {
             return timeDifference <= 500 && sameCollectionSlug;
           });
 
-          if (recentEvents.length >= 5) {
+          if (recentEvents.length >= 2) {
             console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
             const collectionSlug = recentEvents[0].payload.collection.slug;
-            const itemImageUrl = recentEvents[0].payload.payload.metadata.image_url;
-            const collectionPermalink = recentEvents[0].payload.payload.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least 5 items swept 🧹\n` +
-              `Image: [View Image](${itemImageUrl})`
-            ;
+            const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+            const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+            const message = `🧹 <a href="${collectionPermalink}">${collectionSlug}</a> had at least 5 items swept 🧹`;
             telegram.sendMessage(chatID, message);
           }
 
