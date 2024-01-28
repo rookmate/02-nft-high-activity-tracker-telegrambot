@@ -2,15 +2,16 @@ require('dotenv').config()
 const { OpenSeaStreamClient, Network } = require('@opensea/stream-js');
 const { WebSocket } = require('ws');
 const accessSecrets = require('./utils/secrets');
+const TelegramBot = require('node-telegram-bot-api');
 
-async function getKey() {
+async function getOSKey() {
   return process.argv.includes('--google')
     ? (await accessSecrets(['OPENSEA_KEY']))[0]
     : process.env.OPENSEA_KEY;
 }
 
 async function openseaSocket() {
-  const openseaKey = await getKey();
+  const openseaKey = await getOSKey();
 
   const client = new OpenSeaStreamClient({
     network: Network.MAINNET,
