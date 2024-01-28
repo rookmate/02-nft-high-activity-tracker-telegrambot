@@ -10,7 +10,13 @@ async function getOSKey() {
     : process.env.OPENSEA_KEY;
 }
 
-async function openseaSocket() {
+async function getTelegramKey() {
+  return process.argv.includes('--google')
+    ? (await accessSecrets(['TELEGRAM_KEY']))[0]
+    : process.env.TELEGRAM_KEY;
+}
+
+async function openseaSocket(telegram, chatID) {
   const openseaKey = await getOSKey();
 
   const client = new OpenSeaStreamClient({
@@ -46,6 +52,13 @@ async function openseaSocket() {
 
           if (recentEvents.length >= 5) {
             console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
+            const collectionSlug = recentEvents[0].payload.collection.slug;
+            const itemImageUrl = recentEvents[0].payload.payload.item.metadata.image_url;
+            const collectionPermalink = recentEvents[0].payload.payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+            const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least 5 items listed 📉\n` +
+              `Image: [View Image](${itemImageUrl})`
+            ;
+            telegram.sendMessage(chatID, message);
           }
 
           listedEventBuffer = [];
@@ -72,6 +85,13 @@ async function openseaSocket() {
 
           if (recentEvents.length >= 5) {
             console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
+            const collectionSlug = recentEvents[0].payload.collection.slug;
+            const itemImageUrl = recentEvents[0].payload.payload.metadata.image_url;
+            const collectionPermalink = recentEvents[0].payload.payload.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+            const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least 5 items swept 🧹\n` +
+              `Image: [View Image](${itemImageUrl})`
+            ;
+            telegram.sendMessage(chatID, message);
           }
 
           soldEventBuffer = [];
@@ -83,4 +103,21 @@ async function openseaSocket() {
   }
 }
 
-openseaSocket()
+async function main() {
+  const telegramKey = await getTelegramKey();
+  const bot = new TelegramBot(telegramKey, { polling: true });
+
+  bot.onText(/\/start/, async(msg) => {
+    const chatID = msg.chat.id;
+    bot.sendMessage(chatID, `Starting monitor`);
+    console.log(`Starting monitor`);
+    try {
+      openseaSocket(bot, chatID);
+    } catch (e) {
+      bot.sendMessage(chatID, `Something went wrong. Bot is no longer tracking.`);
+      console.log(JSON.stringify(e));
+    }
+  });
+}
+
+main();
