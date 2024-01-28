@@ -3,6 +3,7 @@ const { OpenSeaStreamClient, Network } = require('@opensea/stream-js');
 const { WebSocket } = require('ws');
 const accessSecrets = require('./utils/secrets');
 const TelegramBot = require('node-telegram-bot-api');
+const getFloorData = require('./utils/reservoir');
 
 async function getOSKey() {
   return process.argv.includes('--google')
@@ -17,7 +18,7 @@ async function getTelegramKey() {
 }
 
 async function openseaSocket(telegram, chatID) {
-  const numberOfEvents = 5;
+  const numberOfEvents = 2;
   const openseaKey = await getOSKey();
 
   const client = new OpenSeaStreamClient({
@@ -53,11 +54,14 @@ async function openseaSocket(telegram, chatID) {
 
           if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
-            const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
-            const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least 5 items listed 📉`;
-            console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
-            telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+            const reservoirData = await getFloorData(collectionSlug);
+            if (reservoirData.price > 0.05) {
+              const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+              const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+              const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least ${numberOfEvent} items listed 📉`;
+              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvent} events): ${recentEvents[0].payload.collection.slug}`);
+              telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+            }
           }
 
           listedEventBuffer = [];
@@ -84,11 +88,14 @@ async function openseaSocket(telegram, chatID) {
 
           if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
-            const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
-            const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least 5 items swept 🧹`;
-            console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
-            telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+            const reservoirData = await getFloorData(collectionSlug);
+            if (reservoirData.price > 0.05) {
+              const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+              const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+              const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least ${numberOfEvent} items swept 🧹`;
+              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvent} events): ${recentEvents[0].payload.collection.slug}`);
+              telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+            }
           }
 
           soldEventBuffer = [];
