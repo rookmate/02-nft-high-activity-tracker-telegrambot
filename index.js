@@ -55,8 +55,8 @@ async function openseaSocket(telegram, chatID) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
             const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `📉 <a href="${collectionPermalink}">${collectionSlug}</a> had at least 5 items listed 📉`;
-            telegram.sendMessage(chatID, message);
+            const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least 5 items listed 📉`;
+            telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
           }
 
           listedEventBuffer = [];
@@ -86,8 +86,8 @@ async function openseaSocket(telegram, chatID) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
             const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-            const message = `🧹 <a href="${collectionPermalink}">${collectionSlug}</a> had at least 5 items swept 🧹`;
-            telegram.sendMessage(chatID, message);
+            const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least 5 items swept 🧹`;
+            telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
           }
 
           soldEventBuffer = [];
