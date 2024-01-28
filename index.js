@@ -17,6 +17,7 @@ async function getTelegramKey() {
 }
 
 async function openseaSocket(telegram, chatID) {
+  const numberOfEvents = 5;
   const openseaKey = await getOSKey();
 
   const client = new OpenSeaStreamClient({
@@ -37,7 +38,7 @@ async function openseaSocket(telegram, chatID) {
       if (event.payload.chain === 'ethereum') {
         listedEventBuffer.push(event);
 
-        if (listedEventBuffer.length >= 5) {
+        if (listedEventBuffer.length >= numberOfEvents) {
           const currentTime = new Date(event.payload.event_timestamp).getTime();
 
           // Filter events within the 0.5-second window and same collection slug
@@ -50,12 +51,12 @@ async function openseaSocket(telegram, chatID) {
             return timeDifference <= 500 && sameCollectionSlug;
           });
 
-          if (recentEvents.length >= 2) {
-            console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
+          if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
             const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
             const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least 5 items listed 📉`;
+            console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
             telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
           }
 
@@ -68,7 +69,7 @@ async function openseaSocket(telegram, chatID) {
       if (event.payload.chain === 'ethereum') {
         soldEventBuffer.push(event);
 
-        if (soldEventBuffer.length >= 5) {
+        if (soldEventBuffer.length >= numberOfEvents) {
           const currentTime = new Date(event.payload.event_timestamp).getTime();
 
           // Filter events within the 0.5-second window and same collection slug
@@ -81,12 +82,12 @@ async function openseaSocket(telegram, chatID) {
             return timeDifference <= 500 && sameCollectionSlug;
           });
 
-          if (recentEvents.length >= 2) {
-            console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
+          if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
             const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
             const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least 5 items swept 🧹`;
+            console.log(`${currentTime} Sold Events within 0.5s of each other and same collection slug (more than 5 events): ${recentEvents[0].payload.collection.slug}`);
             telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
           }
 
