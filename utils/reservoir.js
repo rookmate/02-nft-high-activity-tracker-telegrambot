@@ -17,7 +17,7 @@ async function getFloorData(collectionSlug) {
       "symbol": collection.floorAsk.price.currency.symbol
     }));
 
-    return parsedData
+    return parsedData[0];
   } catch (error) {
     console.error(error);
   }
