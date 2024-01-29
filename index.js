@@ -55,11 +55,11 @@ async function openseaSocket(telegram, chatID) {
           if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const reservoirData = await getFloorData(collectionSlug);
-            if (reservoirData.price > 0.05) {
+            if (reservoirData && reservoirData.price > 0.05) {
               const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
               const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-              const message = `📉 [${collectionSlug}](${collectionPermalink}) had at least ${numberOfEvent} items listed 📉`;
-              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvent} events): ${recentEvents[0].payload.collection.slug}`);
+              const message = `📉 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items listed 📉\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
+              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
               telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
             }
           }
@@ -89,11 +89,11 @@ async function openseaSocket(telegram, chatID) {
           if (recentEvents.length >= numberOfEvents) {
             const collectionSlug = recentEvents[0].payload.collection.slug;
             const reservoirData = await getFloorData(collectionSlug);
-            if (reservoirData.price > 0.05) {
+            if (reservoirData && reservoirData.price > 0.05) {
               const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
               const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-              const message = `🧹 [${collectionSlug}](${collectionPermalink}) had at least ${numberOfEvent} items swept 🧹`;
-              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvent} events): ${recentEvents[0].payload.collection.slug}`);
+              const message = `🧹 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items swept 🧹\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
+              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
               telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
             }
           }
