@@ -18,7 +18,7 @@ async function getTelegramKey() {
 }
 
 async function openseaSocket(telegram, chatID) {
-  const numberOfEvents = 2;
+  const numberOfEvents = 5;
   const openseaKey = await getOSKey();
 
   const client = new OpenSeaStreamClient({
