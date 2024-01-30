@@ -29,76 +29,76 @@ async function openseaSocket(telegram, chatID) {
     }
   });
 
-  let soldEventBuffer = [];
-  let listedEventBuffer = [];
+  let sweepEventBuffer = [];
+  let dumpEventBuffer = [];
 
   try {
     client.connect();
 
-    client.onItemListed('*', async (event) => {
-      if (event.payload.chain === 'ethereum') {
-        listedEventBuffer.push(event);
-
-        if (listedEventBuffer.length >= numberOfEvents) {
-          const currentTime = new Date(event.payload.event_timestamp).getTime();
-
-          // Filter events within the 0.5-second window and same collection slug
-          const recentEvents = listedEventBuffer.filter((bufferEvent) => {
-            const bufferTime = new Date(bufferEvent.payload.event_timestamp).getTime();
-            const timeDifference = currentTime - bufferTime;
-            const sameCollectionSlug =
-              event.payload.collection.slug === bufferEvent.payload.collection.slug;
-
-            return timeDifference <= 500 && sameCollectionSlug;
-          });
-
-          if (recentEvents.length >= numberOfEvents) {
-            const collectionSlug = recentEvents[0].payload.collection.slug;
-            const reservoirData = await getFloorData(collectionSlug);
-            if (reservoirData && reservoirData.price > 0.05) {
-              const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
-              const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-              const message = `📉 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items listed 📉\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
-              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
-              telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
-            }
-          }
-
-          listedEventBuffer = [];
-        }
-      }
-    });
-
     client.onItemSold('*', async (event) => {
       if (event.payload.chain === 'ethereum') {
-        soldEventBuffer.push(event);
+        if (event.payload.payment_token.symbol === "ETH") {
+          sweepEventBuffer.push(event);
 
-        if (soldEventBuffer.length >= numberOfEvents) {
-          const currentTime = new Date(event.payload.event_timestamp).getTime();
+          if (sweepEventBuffer.length >= numberOfEvents) {
+            const currentTime = new Date(event.payload.event_timestamp).getTime();
 
-          // Filter events within the 0.5-second window and same collection slug
-          const recentEvents = soldEventBuffer.filter((bufferEvent) => {
-            const bufferTime = new Date(bufferEvent.payload.event_timestamp).getTime();
-            const timeDifference = currentTime - bufferTime;
-            const sameCollectionSlug =
-              event.payload.collection.slug === bufferEvent.payload.collection.slug;
+            // Filter events within the 0.5-second window and same collection slug
+            const recentEvents = sweepEventBuffer.filter((bufferEvent) => {
+              const bufferTime = new Date(bufferEvent.payload.event_timestamp).getTime();
+              const timeDifference = currentTime - bufferTime;
+              const sameCollectionSlug =
+                event.payload.collection.slug === bufferEvent.payload.collection.slug;
 
-            return timeDifference <= 500 && sameCollectionSlug;
-          });
+              return timeDifference <= 500 && sameCollectionSlug;
+            });
 
-          if (recentEvents.length >= numberOfEvents) {
-            const collectionSlug = recentEvents[0].payload.collection.slug;
-            const reservoirData = await getFloorData(collectionSlug);
-            if (reservoirData && reservoirData.price > 0.05) {
-              const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
-              const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
-              const message = `🧹 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items swept 🧹\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
-              console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
-              telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+            if (recentEvents.length >= numberOfEvents) {
+              const collectionSlug = recentEvents[0].payload.collection.slug;
+              const reservoirData = await getFloorData(collectionSlug);
+              if (reservoirData && reservoirData.price > 0.05) {
+                const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+                const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+                const message = `🧹 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items swept 🧹\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
+                console.log(`${currentTime} Listed Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
+                telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+              }
             }
-          }
 
-          soldEventBuffer = [];
+            sweepEventBuffer = [];
+          }
+        }
+
+        if (event.payload.payment_token.symbol === "WETH") {
+          dumpEventBuffer.push(event);
+
+          if (dumpEventBuffer.length >= numberOfEvents) {
+            const currentTime = new Date(event.payload.event_timestamp).getTime();
+
+            // Filter events within the 0.5-second window and same collection slug
+            const recentEvents = dumpEventBuffer.filter((bufferEvent) => {
+              const bufferTime = new Date(bufferEvent.payload.event_timestamp).getTime();
+              const timeDifference = currentTime - bufferTime;
+              const sameCollectionSlug =
+                event.payload.collection.slug === bufferEvent.payload.collection.slug;
+
+              return timeDifference <= 500 && sameCollectionSlug;
+            });
+
+            if (recentEvents.length >= numberOfEvents) {
+              const collectionSlug = recentEvents[0].payload.collection.slug;
+              const reservoirData = await getFloorData(collectionSlug);
+              if (reservoirData && reservoirData.price > 0.01) {
+                const itemImageUrl = recentEvents[0].payload.item.metadata.image_url;
+                const collectionPermalink = recentEvents[0].payload.item.permalink.replace(/\/\d+$/, ''); // Remove the item part;
+                const message = `📉 [${reservoirData.name}](${collectionPermalink}) had at least ${numberOfEvents} items dumped 📉\nFloor price: ${reservoirData.price} ${reservoirData.symbol}`;
+                console.log(`${currentTime} Dumped Events within 0.5s of each other and same collection slug (more than ${numberOfEvents} events): ${recentEvents[0].payload.collection.slug}`);
+                telegram.sendMessage(chatID, message, { parse_mode: "Markdown" });
+              }
+            }
+
+            dumpEventBuffer = [];
+          }
         }
       }
     });
